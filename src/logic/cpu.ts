@@ -1,4 +1,4 @@
-import wordList from '../data/word-list.json';
+import wordList from '../data/word-list-generated.json';
 
 interface WordEntry {
     word: string;
