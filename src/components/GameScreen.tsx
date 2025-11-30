@@ -99,6 +99,8 @@ export const GameScreen: React.FC = () => {
 
         // ユーザーの単語をCPUに通知（重複防止）
         cpu.addUsedWord(result.reading!);
+        // マネージャーにも通知（重複防止）
+        manager.addUsedWord(displayWord);
 
         // CPUのターン
         setTimeout(() => {
@@ -168,6 +170,7 @@ export const GameScreen: React.FC = () => {
 
             // CPUの単語も使用済みとして登録（バリデーション成功後）
             cpu.addUsedWord(cpuEntry.reading);
+            manager.addUsedWord(cpuEntry.word);
         }, 500);
     };
 

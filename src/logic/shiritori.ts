@@ -74,8 +74,12 @@ export class ShiritoriManager {
             }
         }
 
-        this.usedWords.add(word);
+        // this.usedWords.add(word); // ここでの登録は削除し、呼び出し元で明示的に行う
         return { isValid: true, reading, lastChar };
+    }
+
+    addUsedWord(word: string) {
+        this.usedWords.add(word);
     }
 
     private normalize(char: string): string {
