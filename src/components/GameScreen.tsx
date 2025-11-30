@@ -9,7 +9,7 @@ export const GameScreen: React.FC = () => {
 
     const [isReady, setIsReady] = useState(false);
     const [isPlaying, setIsPlaying] = useState(false);
-    const [history, setHistory] = useState<{ word: string, owner: 'user' | 'cpu' }[]>([]);
+    const [history, setHistory] = useState<{ word: string, reading: string, owner: 'user' | 'cpu' }[]>([]);
     const [message, setMessage] = useState('辞書を読み込んでいます...');
     const [lastChar, setLastChar] = useState<string | null>(null);
     const [timeLeft, setTimeLeft] = useState(60);
@@ -73,8 +73,12 @@ export const GameScreen: React.FC = () => {
             return;
         }
 
-        // OKなら履歴に追加
-        const newHistory = [...history, { word: text, owner: 'user' as const }];
+        // OKなら履歴に追加（読みを含む）
+        const newHistory = [...history, {
+            word: text,
+            reading: result.reading!,
+            owner: 'user' as const
+        }];
         setHistory(newHistory);
         setScore(prev => prev + 1);
 
@@ -90,14 +94,14 @@ export const GameScreen: React.FC = () => {
 
             // CPUの単語選択をリトライするロジック
             const maxRetries = 5;
-            let cpuWord: string | null = null;
+            let cpuEntry: { word: string; reading: string } | null = null;
             let cpuResult = null;
             const retryHistory: { attempt: number, word: string | null, isValid: boolean, reason?: string }[] = [];
 
             for (let i = 0; i < maxRetries; i++) {
-                cpuWord = cpu.getNextWord(nextLastChar);
+                cpuEntry = cpu.getNextWord(nextLastChar);
 
-                if (!cpuWord) {
+                if (!cpuEntry) {
                     // 候補がない場合
                     retryHistory.push({ attempt: i + 1, word: null, isValid: false, reason: '候補なし' });
                     console.group(`🔴 CPU失敗: 候補が見つかりません (「${nextLastChar}」から)`);
@@ -109,11 +113,11 @@ export const GameScreen: React.FC = () => {
                 }
 
                 // 選んだ単語を検証
-                cpuResult = manager.validate(cpuWord, nextLastChar);
+                cpuResult = manager.validate(cpuEntry.word, nextLastChar);
 
                 if (cpuResult.isValid) {
                     // 有効な単語が見つかった
-                    retryHistory.push({ attempt: i + 1, word: cpuWord, isValid: true });
+                    retryHistory.push({ attempt: i + 1, word: cpuEntry.word, isValid: true });
                     if (i > 0) {
                         // リトライして成功した場合のみログ出力
                         console.group(`✅ CPU成功: ${i + 1}回目の試行で有効な単語を発見`);
@@ -123,15 +127,15 @@ export const GameScreen: React.FC = () => {
                     break;
                 } else {
                     // 無効な単語だった場合、履歴に記録して次を試す
-                    retryHistory.push({ attempt: i + 1, word: cpuWord, isValid: false, reason: cpuResult.message });
-                    console.warn(`⚠️ CPU retry ${i + 1}/${maxRetries}: "${cpuWord}" → ${cpuResult.message}`);
-                    cpuWord = null;
+                    retryHistory.push({ attempt: i + 1, word: cpuEntry.word, isValid: false, reason: cpuResult.message });
+                    console.warn(`⚠️ CPU retry ${i + 1}/${maxRetries}: "${cpuEntry.word}" → ${cpuResult.message}`);
+                    cpuEntry = null;
                     cpuResult = null;
                 }
             }
 
             // 最大リトライ後も有効な単語が見つからなかった場合
-            if (!cpuWord || !cpuResult || !cpuResult.isValid) {
+            if (!cpuEntry || !cpuResult || !cpuResult.isValid) {
                 console.group(`🔴 CPU失敗: ${maxRetries}回の試行後も有効な単語が見つかりませんでした`);
                 console.log(`次の文字: 「${nextLastChar}」`);
                 console.table(retryHistory);
@@ -141,10 +145,14 @@ export const GameScreen: React.FC = () => {
                 return;
             }
 
-            // 有効な単語が見つかったので、ゲームを続行
-            setHistory([...newHistory, { word: cpuWord, owner: 'cpu' as const }]);
+            // 有効な単語が見つかったので、ゲームを続行（読みを含む）
+            setHistory([...newHistory, {
+                word: cpuEntry.word,
+                reading: cpuEntry.reading,
+                owner: 'cpu' as const
+            }]);
             setLastChar(cpuResult.lastChar!);
-            setMessage(`CPU: ${cpuWord}`);
+            setMessage(`CPU: ${cpuEntry.word}`);
         }, 500);
     };
 
@@ -166,7 +174,8 @@ export const GameScreen: React.FC = () => {
                     {history.map((item, index) => (
                         <div key={index} className={`mb-2 flex ${item.owner === 'user' ? 'justify-end' : 'justify-start'}`}>
                             <div className={`px-4 py-2 rounded-lg max-w-xs ${item.owner === 'user' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-800'}`}>
-                                {item.word}
+                                <div className="font-semibold">{item.word}</div>
+                                <div className="text-xs opacity-75 mt-1">（{item.reading}）</div>
                             </div>
                         </div>
                     ))}

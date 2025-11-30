@@ -11,6 +11,7 @@ type WordListByKana = Record<string, WordEntry[]>;
 export class CpuPlayer {
     private usedWords: Set<string> = new Set();
     private wordListByKana: WordListByKana = {};
+    private allWords: WordEntry[] = [];
 
     constructor() {
         // 複数のJSONファイルを結合
@@ -18,6 +19,11 @@ export class CpuPlayer {
             lyricsWordList as WordListByKana,
             membersWordList as WordListByKana
         ]);
+
+        // 全単語を配列化（検索用）
+        for (const words of Object.values(this.wordListByKana)) {
+            this.allWords.push(...words);
+        }
     }
 
     /**
@@ -62,7 +68,15 @@ export class CpuPlayer {
         this.usedWords.add(reading);
     }
 
-    getNextWord(lastChar: string): string | null {
+    /**
+     * 読みから単語を検索する（ユーザー入力用）
+     */
+    findWordByReading(reading: string): WordEntry | null {
+        const found = this.allWords.find(entry => entry.reading === reading);
+        return found || null;
+    }
+
+    getNextWord(lastChar: string): { word: string; reading: string } | null {
         // 指定された文字から始まる単語のリストを取得
         const candidates = this.wordListByKana[lastChar] || [];
 
@@ -82,7 +96,7 @@ export class CpuPlayer {
         // 使用済みとしてマーク
         this.usedWords.add(selected.reading);
 
-        return selected.word;
+        return { word: selected.word, reading: selected.reading };
     }
 
     /**
