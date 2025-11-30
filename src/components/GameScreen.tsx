@@ -165,6 +165,9 @@ export const GameScreen: React.FC = () => {
             }]);
             setLastChar(cpuResult.lastChar!);
             setMessage(`CPU: ${cpuEntry.word}`);
+
+            // CPUの単語も使用済みとして登録（バリデーション成功後）
+            cpu.addUsedWord(cpuEntry.reading);
         }, 500);
     };
 

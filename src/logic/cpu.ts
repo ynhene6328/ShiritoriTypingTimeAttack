@@ -93,8 +93,8 @@ export class CpuPlayer {
         const randomIndex = Math.floor(Math.random() * availableWords.length);
         const selected = availableWords[randomIndex];
 
-        // 使用済みとしてマーク
-        this.usedWords.add(selected.reading);
+        // NOTE: 使用済み登録はバリデーション成功後に GameScreen 側で行う
+        // ここで登録すると、バリデーション失敗した単語も使用済みになってしまう
 
         return { word: selected.word, reading: selected.reading };
     }
