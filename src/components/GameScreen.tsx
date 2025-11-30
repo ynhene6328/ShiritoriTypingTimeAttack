@@ -75,7 +75,15 @@ export const GameScreen: React.FC = () => {
 
         // 読みから単語リストを検索（単語リストに存在する表記を優先）
         const wordEntry = cpu.findWordByReading(result.reading!);
-        const displayWord = wordEntry ? wordEntry.word : text;
+
+        // TODO: 将来的には、単語リストにない単語も許容する可能性がある
+        // 現時点では、単語リストに存在する単語のみを許可する
+        if (!wordEntry) {
+            setMessage(`エラー: その単語は単語リストに登録されていません（読み: ${result.reading}）`);
+            return;
+        }
+
+        const displayWord = wordEntry.word;
 
         // OKなら履歴に追加（読みを含む）
         const newHistory = [...history, {
