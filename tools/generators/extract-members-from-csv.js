@@ -36,7 +36,7 @@ function isValidForShiritori(reading) {
 
 // ひらがなをカタカナに変換
 function hiraganaToKatakana(str) {
-  return str.replace(/[\u3041-\u3096]/g, char => 
+  return str.replace(/[\u3041-\u3096]/g, char =>
     String.fromCharCode(char.charCodeAt(0) + 0x60)
   );
 }
@@ -56,8 +56,8 @@ fs.createReadStream(INPUT_CSV)
 
     memberCount++;
 
-    // よみをカタカナに変換
-    const reading = hiraganaToKatakana(yomi.trim());
+    // よみをカタカナに変換（空白を削除）
+    const reading = hiraganaToKatakana(yomi.trim().replace(/\s+/g, ''));
 
     // 「ん」で終わる場合は除外
     if (!isValidForShiritori(reading)) {
