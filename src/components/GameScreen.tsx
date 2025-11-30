@@ -73,9 +73,13 @@ export const GameScreen: React.FC = () => {
             return;
         }
 
+        // 読みから単語リストを検索（単語リストに存在する表記を優先）
+        const wordEntry = cpu.findWordByReading(result.reading!);
+        const displayWord = wordEntry ? wordEntry.word : text;
+
         // OKなら履歴に追加（読みを含む）
         const newHistory = [...history, {
-            word: text,
+            word: displayWord,
             reading: result.reading!,
             owner: 'user' as const
         }];
