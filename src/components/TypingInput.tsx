@@ -28,8 +28,8 @@ export const TypingInput: React.FC<Props> = ({ onSubmit, disabled, placeholder }
             if (inputRef.current) {
                 const trimmed = inputRef.current.value.trim();
 
-                // ひらがなのみをチェック
-                const hiraganaOnly = /^[\u3041-\u3096]+$/;
+                // ひらがなのみをチェック（長音記号も許可）
+                const hiraganaOnly = /^[\u3041-\u3096\u30FC]+$/;
                 if (!hiraganaOnly.test(trimmed)) {
                     alert('ひらがなのみで入力してください');
                     return;

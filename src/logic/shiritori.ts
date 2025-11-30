@@ -64,7 +64,8 @@ export class ShiritoriManager {
     // 長音対応版の lastChar 取得
     getLastChar(reading: string): string {
         let last = reading.slice(-1);
-        if (last === 'ー' && reading.length > 1) {
+        const choon = ['ー', '−', '―', '-'];
+        if (choon.includes(last) && reading.length > 1) {
             last = reading.slice(-2, -1);
         }
         return this.normalize(last);

@@ -74,9 +74,12 @@ export class CpuPlayer {
      */
     findWordByReading(reading: string): WordEntry | null {
         // ひらがな -> カタカナ変換
-        const katakanaReading = reading.replace(/[\u3041-\u3096]/g, char =>
+        let katakanaReading = reading.replace(/[\u3041-\u3096]/g, char =>
             String.fromCharCode(char.charCodeAt(0) + 0x60)
         );
+
+        // 長音記号の正規化（全角マイナスなどを「ー」に統一）
+        katakanaReading = katakanaReading.replace(/[−―-]/g, 'ー');
 
         const found = this.allWords.find(entry => entry.reading === katakanaReading);
         return found || null;

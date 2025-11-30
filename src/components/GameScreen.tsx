@@ -126,7 +126,7 @@ export const GameScreen: React.FC = () => {
                 }
 
                 // 選んだ単語を検証
-                cpuResult = manager.validate(cpuEntry.word, nextLastChar);
+                cpuResult = manager.validate(cpuEntry.reading, nextLastChar);
 
                 if (cpuResult.isValid) {
                     // 有効な単語が見つかった
