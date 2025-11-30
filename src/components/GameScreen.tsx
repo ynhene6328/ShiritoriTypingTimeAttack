@@ -67,28 +67,27 @@ export const GameScreen: React.FC = () => {
         if (!isPlaying) return;
 
         // ユーザーのターン
-        const result = manager.validate(text, lastChar);
+        // 1. まず単語リストから検索（ひらがな入力 → カタカナ検索）
+        const wordEntry = cpu.findWordByReading(text);
+
+        if (!wordEntry) {
+            setMessage(`エラー: その単語は単語リストに登録されていません（読み: ${text}）`);
+            return;
+        }
+
+        // 2. しりとりルールを検証（カタカナの読みを使用）
+        const result = manager.validate(wordEntry.reading, lastChar);
         if (!result.isValid) {
             setMessage(`エラー: ${result.message}`);
             return;
         }
 
-        // 読みから単語リストを検索（単語リストに存在する表記を優先）
-        const wordEntry = cpu.findWordByReading(result.reading!);
-
-        // TODO: 将来的には、単語リストにない単語も許容する可能性がある
-        // 現時点では、単語リストに存在する単語のみを許可する
-        if (!wordEntry) {
-            setMessage(`エラー: その単語は単語リストに登録されていません（読み: ${result.reading}）`);
-            return;
-        }
-
         const displayWord = wordEntry.word;
 
-        // OKなら履歴に追加（読みを含む）
+        // OKなら履歴に追加
         const newHistory = [...history, {
             word: displayWord,
-            reading: result.reading!,
+            reading: wordEntry.reading,
             owner: 'user' as const
         }];
         setHistory(newHistory);
@@ -98,9 +97,9 @@ export const GameScreen: React.FC = () => {
         setLastChar(nextLastChar);
 
         // ユーザーの単語をCPUに通知（重複防止）
-        cpu.addUsedWord(result.reading!);
-        // マネージャーにも通知（重複防止）
-        manager.addUsedWord(displayWord);
+        cpu.addUsedWord(wordEntry.reading);
+        // マネージャーにも通知（重複防止 - readingを使用）
+        manager.addUsedWord(wordEntry.reading);
 
         // CPUのターン
         setTimeout(() => {
@@ -170,7 +169,7 @@ export const GameScreen: React.FC = () => {
 
             // CPUの単語も使用済みとして登録（バリデーション成功後）
             cpu.addUsedWord(cpuEntry.reading);
-            manager.addUsedWord(cpuEntry.word);
+            manager.addUsedWord(cpuEntry.reading);
         }, 500);
     };
 

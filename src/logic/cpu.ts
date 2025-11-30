@@ -70,9 +70,15 @@ export class CpuPlayer {
 
     /**
      * 読みから単語を検索する（ユーザー入力用）
+     * 入力はひらがなを想定し、カタカナに変換して検索する
      */
     findWordByReading(reading: string): WordEntry | null {
-        const found = this.allWords.find(entry => entry.reading === reading);
+        // ひらがな -> カタカナ変換
+        const katakanaReading = reading.replace(/[\u3041-\u3096]/g, char =>
+            String.fromCharCode(char.charCodeAt(0) + 0x60)
+        );
+
+        const found = this.allWords.find(entry => entry.reading === katakanaReading);
         return found || null;
     }
 

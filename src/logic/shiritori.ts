@@ -1,5 +1,3 @@
-import kuromoji from 'kuromoji';
-
 export interface ShiritoriResult {
     isValid: boolean;
     message?: string;
@@ -8,56 +6,27 @@ export interface ShiritoriResult {
 }
 
 export class ShiritoriManager {
-    private tokenizer: kuromoji.Tokenizer<kuromoji.IpadicFeatures> | null = null;
     private usedWords: Set<string> = new Set();
 
-    async init(dicPath: string = 'dict/'): Promise<void> {
-        return new Promise((resolve, reject) => {
-            kuromoji.builder({ dicPath }).build((err, tokenizer) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    this.tokenizer = tokenizer;
-                    resolve();
-                }
-            });
-        });
+    // 初期化処理は不要になったが、インターフェース互換性のために残す（即解決）
+    async init(_dicPath: string = 'dict/'): Promise<void> {
+        return Promise.resolve();
     }
 
     reset() {
         this.usedWords.clear();
     }
 
-    validate(word: string, previousLastChar: string | null): ShiritoriResult {
-        if (!this.tokenizer) {
-            return { isValid: false, message: '辞書がロードされていません' };
-        }
-
-        if (this.usedWords.has(word)) {
+    /**
+     * しりとりルールを検証する
+     * @param reading カタカナの読み
+     * @param previousLastChar 前の単語の最後の文字
+     */
+    validate(reading: string, previousLastChar: string | null): ShiritoriResult {
+        // 使用済みチェック
+        // 注意: ここではチェックのみ行い、登録はしない
+        if (this.usedWords.has(reading)) {
             return { isValid: false, message: 'すでに使われた単語です' };
-        }
-
-        const path = this.tokenizer.tokenize(word);
-        if (path.length === 0) {
-            return { isValid: false, message: '単語として認識されませんでした' };
-        }
-
-        // 読み仮名を取得 (カタカナ)
-        let reading = '';
-        for (const token of path) {
-            // 読みがない場合のフォールバック処理
-            // カタカナ単語の場合、元の文字列をそのまま使う
-            if (!token.reading) {
-                // カタカナかどうかチェック
-                const isKatakana = /^[ァ-ヶー]+$/.test(token.surface_form);
-                if (isKatakana) {
-                    reading += token.surface_form;
-                } else {
-                    return { isValid: false, message: '辞書にない単語、または読み方が不明です' };
-                }
-            } else {
-                reading += token.reading;
-            }
         }
 
         // 最後の文字判定
@@ -74,14 +43,14 @@ export class ShiritoriManager {
             }
         }
 
-        // this.usedWords.add(word); // ここでの登録は削除し、呼び出し元で明示的に行う
         return { isValid: true, reading, lastChar };
     }
 
-    addUsedWord(word: string) {
-        this.usedWords.add(word);
+    addUsedWord(reading: string) {
+        this.usedWords.add(reading);
     }
 
+    // 文字の正規化（小文字→大文字）
     private normalize(char: string): string {
         const map: { [key: string]: string } = {
             'ァ': 'ア', 'ィ': 'イ', 'ゥ': 'ウ', 'ェ': 'エ', 'ォ': 'オ',
