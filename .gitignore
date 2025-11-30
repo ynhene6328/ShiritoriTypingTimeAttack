@@ -23,3 +23,4 @@ dist-ssr
 *.sln
 *.sw?
 nogizaka46_full_lyrics_dataset.csv
+tools/data-sources/
