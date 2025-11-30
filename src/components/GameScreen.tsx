@@ -15,7 +15,6 @@ export const GameScreen: React.FC = () => {
     const [timeLeft, setTimeLeft] = useState(60);
     const [score, setScore] = useState(0);
 
-    const timerRef = useRef<number | undefined>(undefined);
     const historyRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -35,6 +34,30 @@ export const GameScreen: React.FC = () => {
         }
     }, [history]);
 
+    // タイマーのカウントダウン
+    useEffect(() => {
+        if (!isPlaying) return;
+
+        const timer = setInterval(() => {
+            setTimeLeft(prev => {
+                if (prev <= 1) {
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+
+        return () => clearInterval(timer);
+    }, [isPlaying]);
+
+    // タイムアップ判定
+    useEffect(() => {
+        if (timeLeft === 0 && isPlaying) {
+            setIsPlaying(false);
+            setMessage(`タイムアップ！ スコア: ${score}回`);
+        }
+    }, [timeLeft, isPlaying, score]);
+
     const startGame = () => {
         manager.reset();
         cpu.reset();
@@ -44,23 +67,6 @@ export const GameScreen: React.FC = () => {
         setTimeLeft(60);
         setIsPlaying(true);
         setMessage('スタート！好きな単語を入力してください');
-
-        if (timerRef.current) clearInterval(timerRef.current);
-        timerRef.current = window.setInterval(() => {
-            setTimeLeft(prev => {
-                if (prev <= 1) {
-                    endGame();
-                    return 0;
-                }
-                return prev - 1;
-            });
-        }, 1000);
-    };
-
-    const endGame = () => {
-        setIsPlaying(false);
-        if (timerRef.current) clearInterval(timerRef.current);
-        setMessage(`タイムアップ！ スコア: ${score}回`);
     };
 
     const handleUserSubmit = (text: string) => {
