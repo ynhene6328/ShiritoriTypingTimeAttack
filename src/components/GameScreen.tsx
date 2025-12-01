@@ -13,6 +13,7 @@ export const GameScreen: React.FC = () => {
     const [message, setMessage] = useState('辞書を読み込んでいます...');
     const [lastChar, setLastChar] = useState<string | null>(null);
     const [timeLeft, setTimeLeft] = useState(60);
+    const [timeLimit, setTimeLimit] = useState(60); // デフォルト1分
     const [score, setScore] = useState(0);
 
     const historyRef = useRef<HTMLDivElement>(null);
@@ -64,7 +65,7 @@ export const GameScreen: React.FC = () => {
         setHistory([]);
         setLastChar(null);
         setScore(0);
-        setTimeLeft(60);
+        setTimeLeft(timeLimit); // 選択された制限時間を設定
         setIsPlaying(true);
         setMessage('スタート！好きな単語を入力してください');
     };
@@ -210,6 +211,24 @@ export const GameScreen: React.FC = () => {
 
                 {!isPlaying ? (
                     <div className="text-center">
+                        <div className="mb-6">
+                            <label className="block text-gray-700 font-bold mb-2">制限時間を選択</label>
+                            <div className="flex justify-center gap-4">
+                                {[60, 180, 300].map(time => (
+                                    <button
+                                        key={time}
+                                        onClick={() => setTimeLimit(time)}
+                                        className={`px-4 py-2 rounded-lg font-bold transition-colors ${timeLimit === time
+                                                ? 'bg-blue-500 text-white shadow-md'
+                                                : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                                            }`}
+                                    >
+                                        {time / 60}分
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
                         <button
                             onClick={startGame}
                             disabled={!isReady}
